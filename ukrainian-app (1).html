@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Говори — Learn Ukrainian</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #D4A84B;
+    --blue: #1A3A6B;
+    --sky: #5B8FD4;
+    --cream: #FAF7F0;
+    --dark: #0F1F3D;
+    --text: #2C3E50;
+    --light-blue: #EBF1FB;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--text); min-height: 100vh; }
+
+  header { background: var(--dark); padding: 18px 32px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .logo { font-family: 'Playfair Display', serif; color: var(--gold); font-size: 1.6rem; letter-spacing: 1px; }
+  .logo span { color: #fff; font-size: 0.9rem; display: block; font-family: 'DM Sans', sans-serif; letter-spacing: 3px; font-weight: 300; }
+  .progress-bar { background: rgba(255,255,255,0.1); border-radius: 20px; height: 8px; width: 200px; overflow: hidden; }
+  .progress-fill { background: linear-gradient(90deg, var(--gold), #F0C060); height: 100%; border-radius: 20px; transition: width 0.5s ease; width: 0%; }
+
+  .tabs { display: flex; background: var(--blue); padding: 0 32px; }
+  .tab { padding: 14px 28px; cursor: pointer; color: rgba(255,255,255,0.6); font-size: 0.95rem; font-weight: 500; letter-spacing: 0.5px; border-bottom: 3px solid transparent; transition: all 0.2s; }
+  .tab:hover { color: #fff; }
+  .tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+  .content { display: none; padding: 48px 32px; max-width: 960px; margin: 0 auto; }
+  .content.active { display: block; }
+
+  .section-title { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--dark); margin-bottom: 8px; }
+  .section-sub { color: #7a8fa6; margin-bottom: 40px; font-size: 0.95rem; }
+
+  /* ===== DIALOGUES ===== */
+  .dialogue-filters {
+    display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 32px;
+  }
+  .filter-btn {
+    background: #fff; border: 2px solid #e0e8f5; border-radius: 24px;
+    padding: 8px 18px; font-size: 0.83rem; font-weight: 500; cursor: pointer;
+    color: var(--text); transition: all 0.2s;
+  }
+  .filter-btn:hover, .filter-btn.active { background: var(--light-blue); border-color: var(--sky); color: var(--blue); }
+
+  .dialogue-grid { display: grid; gap: 18px; }
+
+  .dialogue-card {
+    background: #fff; border-radius: 18px; overflow: hidden;
+    border: 1.5px solid #e0e8f5; transition: all 0.25s;
+  }
+  .dialogue-card:hover { border-color: var(--sky); box-shadow: 0 10px 36px rgba(91,143,212,0.13); transform: translateY(-2px); }
+
+  .dialogue-header {
+    padding: 20px 26px; display: flex; align-items: center; gap: 16px; cursor: pointer;
+  }
+  .d-icon { font-size: 2rem; }
+  .d-info { flex: 1; }
+  .d-title { font-weight: 700; font-size: 1.05rem; color: var(--dark); }
+  .d-sub { font-size: 0.8rem; color: #7a8fa6; margin-top: 3px; }
+  .d-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+  .d-tag { background: var(--light-blue); color: var(--sky); font-size: 0.72rem; padding: 4px 11px; border-radius: 20px; font-weight: 600; white-space: nowrap; }
+  .d-lines { font-size: 0.72rem; color: #aab; }
+  .d-arrow { color: #cdd6e5; font-size: 1rem; margin-left: 8px; transition: transform 0.3s; }
+  .dialogue-card.open .d-arrow { transform: rotate(180deg); }
+
+  .dialogue-body { display: none; border-top: 1.5px solid #f0f4fb; padding: 8px 26px 28px; }
+  .dialogue-card.open .dialogue-body { display: block; }
+
+  .chat-line { display: flex; flex-direction: column; margin-top: 18px; }
+  .line-speaker { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; margin-bottom: 5px; color: #7a8fa6; }
+  .line-row { display: flex; align-items: flex-start; gap: 10px; }
+  .bubble {
+    background: var(--light-blue); border-radius: 16px 16px 16px 4px;
+    padding: 13px 17px; max-width: 88%;
+  }
+  .chat-line.right { align-items: flex-end; }
+  .chat-line.right .line-row { flex-direction: row-reverse; }
+  .chat-line.right .bubble { background: var(--dark); color: #fff; border-radius: 16px 16px 4px 16px; }
+  .chat-line.right .line-speaker { text-align: right; }
+  .b-ua { font-size: 1.05rem; font-weight: 700; font-family: 'Playfair Display', serif; margin-bottom: 4px; }
+  .b-ph { font-size: 0.8rem; opacity: 0.65; font-style: italic; margin-bottom: 3px; }
+  .b-en { font-size: 0.83rem; opacity: 0.72; }
+
+  .speak-sm { background: var(--light-blue); border: none; border-radius: 50%; width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: var(--sky); font-size: 0.9rem; transition: all 0.2s; flex-shrink: 0; }
+  .speak-sm:hover { background: var(--sky); color: #fff; }
+  .chat-line.right .speak-sm { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.7); }
+  .chat-line.right .speak-sm:hover { background: rgba(255,255,255,0.25); color: #fff; }
+
+  /* ===== FLASHCARDS ===== */
+  .category-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; margin-bottom: 40px; }
+  .category-btn { background: #fff; border: 2px solid #e0e8f5; border-radius: 12px; padding: 14px 10px; text-align: center; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: all 0.2s; color: var(--text); }
+  .category-btn .cat-icon { font-size: 1.5rem; display: block; margin-bottom: 6px; }
+  .category-btn:hover, .category-btn.active { border-color: var(--sky); background: var(--light-blue); color: var(--blue); }
+
+  .flashcard-area { display: flex; flex-direction: column; align-items: center; gap: 24px; }
+  .flashcard { width: 100%; max-width: 500px; height: 290px; perspective: 1000px; cursor: pointer; }
+  .flashcard-inner { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1); }
+  .flashcard.flipped .flashcard-inner { transform: rotateY(180deg); }
+  .card-face { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px; text-align: center; }
+  .card-front { background: linear-gradient(135deg, var(--dark) 0%, var(--blue) 100%); color: #fff; box-shadow: 0 20px 60px rgba(26,58,107,0.35); }
+  .card-back { background: linear-gradient(135deg, #fff 0%, #f0f6ff 100%); color: var(--dark); transform: rotateY(180deg); border: 2px solid var(--light-blue); box-shadow: 0 20px 60px rgba(0,0,0,0.08); }
+  .card-ukrainian { font-size: 2.2rem; font-family: 'Playfair Display', serif; margin-bottom: 6px; line-height: 1.2; }
+  .card-hint { font-size: 0.8rem; opacity: 0.6; margin-top: 12px; letter-spacing: 1px; text-transform: uppercase; }
+  .card-translation { font-size: 1.4rem; font-weight: 600; color: var(--blue); margin-bottom: 10px; }
+  .card-phonetic { font-size: 0.95rem; color: #7a8fa6; font-style: italic; }
+  .card-context { font-size: 0.85rem; color: var(--gold); margin-top: 12px; font-weight: 500; }
+
+  .speak-btn { background: none; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #fff; font-size: 1.1rem; transition: all 0.2s; margin-top: 10px; }
+  .speak-btn:hover { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.7); }
+
+  .card-controls { display: flex; gap: 16px; align-items: center; }
+  .btn { padding: 12px 28px; border-radius: 50px; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 0.9rem; transition: all 0.2s; }
+  .btn-primary { background: var(--gold); color: var(--dark); }
+  .btn-primary:hover { background: #e8b845; transform: translateY(-1px); }
+  .btn-outline { background: transparent; color: var(--blue); border: 2px solid var(--sky); }
+  .btn-outline:hover { background: var(--light-blue); }
+  .card-counter { font-size: 0.85rem; color: #7a8fa6; font-weight: 500; }
+  .speech-notice { font-size: 0.8rem; color: #aab; text-align: center; min-height: 18px; }
+
+  @media (max-width: 620px) {
+    .content { padding: 24px 14px; }
+    .tabs { padding: 0 10px; }
+    .tab { padding: 12px 14px; font-size: 0.8rem; }
+    header { padding: 14px 16px; }
+    .progress-bar { width: 110px; }
+    .dialogue-header { padding: 16px 16px; }
+    .dialogue-body { padding: 8px 16px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Говори <span>Learn Ukrainian</span></div>
+  <div>
+    <div style="font-size:0.7rem;color:rgba(255,255,255,0.5);margin-bottom:4px;text-align:right">PROGRESS</div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  </div>
+</header>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('dialogues', this)">💬 Dialogues</div>
+  <div class="tab" onclick="switchTab('flashcards', this)">🃏 Flashcards</div>
+</div>
+
+<!-- DIALOGUES -->
+<div class="content active" id="dialogues">
+  <h1 class="section-title">Daily Dialogues</h1>
+  <p class="section-sub">Real conversations for everyday life — tap a card to read & listen, line by line.</p>
+
+  <div class="dialogue-filters" id="filters">
+    <div class="filter-btn active" onclick="filterDialogues('all', this)">🌍 All</div>
+    <div class="filter-btn" onclick="filterDialogues('daily', this)">🏙️ Daily Life</div>
+    <div class="filter-btn" onclick="filterDialogues('social', this)">🤝 Social</div>
+    <div class="filter-btn" onclick="filterDialogues('work', this)">💼 Work</div>
+    <div class="filter-btn" onclick="filterDialogues('family', this)">👨‍👩‍👧 Family</div>
+  </div>
+
+  <div class="dialogue-grid" id="dialogueGrid"></div>
+</div>
+
+<!-- FLASHCARDS -->
+<div class="content" id="flashcards">
+  <h1 class="section-title">Flashcard Practice</h1>
+  <p class="section-sub">Click to flip · 🔊 to hear pronunciation</p>
+
+  <div class="category-grid">
+    <div class="category-btn active" onclick="selectCat('greetings', this)"><span class="cat-icon">👋</span>Greetings</div>
+    <div class="category-btn" onclick="selectCat('numbers', this)"><span class="cat-icon">🔢</span>Numbers</div>
+    <div class="category-btn" onclick="selectCat('food', this)"><span class="cat-icon">🍽️</span>Food</div>
+    <div class="category-btn" onclick="selectCat('transport', this)"><span class="cat-icon">🚌</span>Transport</div>
+    <div class="category-btn" onclick="selectCat('shopping', this)"><span class="cat-icon">🛍️</span>Shopping</div>
+    <div class="category-btn" onclick="selectCat('emergency', this)"><span class="cat-icon">🆘</span>Emergency</div>
+  </div>
+
+  <div class="flashcard-area">
+    <div class="flashcard" id="mainCard" onclick="flipCard()">
+      <div class="flashcard-inner">
+        <div class="card-face card-front">
+          <div class="card-ukrainian" id="cardUA">Привіт</div>
+          <button class="speak-btn" id="speakBtn" onclick="event.stopPropagation(); speakCurrent()" title="Pronounce">🔊</button>
+          <div class="card-hint">↩ tap to flip</div>
+        </div>
+        <div class="card-face card-back">
+          <div class="card-translation" id="cardEN">Hello</div>
+          <div class="card-phonetic" id="cardPH">Pryvit</div>
+          <div class="card-context" id="cardCTX">Informal greeting</div>
+        </div>
+      </div>
+    </div>
+    <div id="speechNotice" class="speech-notice"></div>
+    <div class="card-controls">
+      <button class="btn btn-outline" onclick="prevCard()">← Prev</button>
+      <div class="card-counter" id="cardCounter">1 / 8</div>
+      <button class="btn btn-primary" onclick="nextCard()">Next →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// =================== DIALOGUES DATA ===================
+const dialogues = [
+  // ---- DAILY LIFE ----
+  {
+    cat: 'daily', icon: '☕', title: 'At the café', sub: 'Ordering drinks & snacks',
+    lines: [
+      { s: 'Barista', r: 'left',  ua: 'Доброго ранку! Ласкаво просимо!', ph: 'Dobroho ranku! Laskavo prosymo!', en: 'Good morning! Welcome!' },
+      { s: 'You',     r: 'right', ua: 'Доброго ранку! Одну каву, будь ласка.', ph: 'Dobroho ranku! Odnu kavu, bud\' laska.', en: 'Good morning! One coffee, please.' },
+      { s: 'Barista', r: 'left',  ua: 'З молоком чи без?', ph: 'Z molokom chy bez?', en: 'With milk or without?' },
+      { s: 'You',     r: 'right', ua: 'З молоком, будь ласка. І без цукру.', ph: 'Z molokom, bud\' laska. I bez tsukru.', en: 'With milk, please. And without sugar.' },
+      { s: 'Barista', r: 'left',  ua: 'Добре. Щось ще?', ph: 'Dobre. Shchos\' shche?', en: 'OK. Anything else?' },
+      { s: 'You',     r: 'right', ua: 'Так, один круасан, будь ласка.', ph: 'Tak, odyn kruasan, bud\' laska.', en: 'Yes, one croissant, please.' },
+      { s: 'Barista', r: 'left',  ua: 'З маслом чи з джемом?', ph: 'Z maslom chy z dzhemom?', en: 'With butter or with jam?' },
+      { s: 'You',     r: 'right', ua: 'З джемом, дякую.', ph: 'Z dzhemom, dyakuyu.', en: 'With jam, thank you.' },
+      { s: 'Barista', r: 'left',  ua: 'Тут будете чи з собою?', ph: 'Tut budete chy z soboyu?', en: 'Eating here or to go?' },
+      { s: 'You',     r: 'right', ua: 'Тут, дякую.', ph: 'Tut, dyakuyu.', en: 'Here, thank you.' },
+      { s: 'Barista', r: 'left',  ua: 'Добре. Ваше ім\'я?', ph: 'Dobre. Vashe im\'ya?', en: 'OK. Your name?' },
+      { s: 'You',     r: 'right', ua: 'Антуан.', ph: 'Antuan.', en: 'Antoine.' },
+      { s: 'Barista', r: 'left',  ua: 'Зрозуміло! Скільки хвилин почекаєте?', ph: 'Zrozumilo! Skil\'ky khvylyn pochekayete?', en: 'Got it! How many minutes will you wait?' },
+      { s: 'You',     r: 'right', ua: 'Не поспішаю. Скільки коштує?', ph: 'Ne poshpishayu. Skil\'ky koshtuye?', en: 'I\'m not in a hurry. How much is it?' },
+      { s: 'Barista', r: 'left',  ua: 'Сімдесят гривень, будь ласка.', ph: 'Simdесят hryven\', bud\' laska.', en: 'Seventy hryvnias, please.' },
+      { s: 'You',     r: 'right', ua: 'Ось сто. Дайте решту, будь ласка.', ph: 'Os\' sto. Dayte reshtu, bud\' laska.', en: 'Here\'s a hundred. Change please.' },
+      { s: 'Barista', r: 'left',  ua: 'Ось тридцять гривень решти. Дякую!', ph: 'Os\' trydtsyat\' hryven\' reshty. Dyakuyu!', en: 'Here\'s thirty hryvnias change. Thank you!' },
+      { s: 'You',     r: 'right', ua: 'Дякую вам. Смачного!', ph: 'Dyakuyu vam. Smachnoho!', en: 'Thank you. Bon appétit!' },
+      { s: 'Barista', r: 'left',  ua: 'І вам також! Гарного дня!', ph: 'I vam takozh! Harnoho dnya!', en: 'You too! Have a nice day!' },
+      { s: 'You',     r: 'right', ua: 'Дякую, до побачення!', ph: 'Dyakuyu, do pobachennya!', en: 'Thank you, goodbye!' },
+    ]
+  },
+  {
+    cat: 'daily', icon: '🚌', title: 'On the bus', sub: 'Getting directions in the city',
+    lines: [
+      { s: 'You',       r: 'right', ua: 'Вибачте, це автобус номер дванадцять?', ph: 'Vybachte, tse avtobus nomer dvanadtsyat\'?', en: 'Excuse me, is this bus number twelve?' },
+      { s: 'Passenger', r: 'left',  ua: 'Так, саме так. Куди їдете?', ph: 'Tak, same tak. Kudy yidete?', en: 'Yes, that\'s right. Where are you going?' },
+      { s: 'You',       r: 'right', ua: 'На центральну площу. Далеко?', ph: 'Na tsentral\'nu ploshchu. Daleko?', en: 'To the central square. Is it far?' },
+      { s: 'Passenger', r: 'left',  ua: 'Ні, хвилин десять їзди.', ph: 'Ni, khvylyn desyat\' yizdy.', en: 'No, about ten minutes by bus.' },
+      { s: 'You',       r: 'right', ua: 'Добре. А де мені виходити?', ph: 'Dobre. A de meni vykhodyt\'?', en: 'Good. And where do I get off?' },
+      { s: 'Passenger', r: 'left',  ua: 'На зупинці «Майдан». Я скажу вам.', ph: 'Na zupyntsi «Maydan». Ya skazhu vam.', en: 'At the "Maidan" stop. I\'ll let you know.' },
+      { s: 'You',       r: 'right', ua: 'Дуже дякую! Ви дуже добрі.', ph: 'Duzhe dyakuyu! Vy duzhe dobri.', en: 'Thank you very much! You are very kind.' },
+      { s: 'Passenger', r: 'left',  ua: 'Нема за що. Ви іноземець?', ph: 'Nema za shcho. Vy inozemets\'?', en: 'No problem. Are you a foreigner?' },
+      { s: 'You',       r: 'right', ua: 'Так, я з Франції. Вчу українську.', ph: 'Tak, ya z Frantsiyi. Vchu ukrayins\'ku.', en: 'Yes, I\'m from France. I\'m learning Ukrainian.' },
+      { s: 'Passenger', r: 'left',  ua: 'О, чудово! Ви вже добре говорите.', ph: 'O, chudovo! Vy vzhe dobre hovoryte.', en: 'Oh, wonderful! You already speak well.' },
+      { s: 'You',       r: 'right', ua: 'Ні-ні, ще дуже мало! Але дякую.', ph: 'Ni-ni, shche duzhe malo! Ale dyakuyu.', en: 'No no, still very little! But thank you.' },
+      { s: 'Passenger', r: 'left',  ua: 'Давно в Україні?', ph: 'Davno v Ukrayini?', en: 'Have you been in Ukraine long?' },
+      { s: 'You',       r: 'right', ua: 'Тільки тиждень. Це моя перша поїздка.', ph: 'Til\'ky tyzhden\'. Tse moya persha poyizdka.', en: 'Only a week. It\'s my first trip.' },
+      { s: 'Passenger', r: 'left',  ua: 'Як вам Київ? Подобається?', ph: 'Yak vam Kyyiv? Podobayetsya?', en: 'How do you like Kyiv? Do you enjoy it?' },
+      { s: 'You',       r: 'right', ua: 'Дуже! Місто прекрасне.', ph: 'Duzhe! Misto prekrasne.', en: 'Very much! The city is beautiful.' },
+      { s: 'Passenger', r: 'left',  ua: 'Раді бачити гостей! Ось ваша зупинка.', ph: 'Radi bachyty hostey! Os\' vasha zupynka.', en: 'Happy to have guests! Here\'s your stop.' },
+      { s: 'You',       r: 'right', ua: 'Вже? Дякую, що попередили!', ph: 'Vzhe? Dyakuyu, shcho poperedly!', en: 'Already? Thank you for letting me know!' },
+      { s: 'Passenger', r: 'left',  ua: 'Прямо, потім праворуч — і ви на місці.', ph: 'Pryamo, potim pravoruch — i vy na mistsi.', en: 'Straight ahead, then right — and you\'re there.' },
+      { s: 'You',       r: 'right', ua: 'Зрозумів. Дуже дякую!', ph: 'Zrozumiv. Duzhe dyakuyu!', en: 'Understood. Thank you so much!' },
+      { s: 'Passenger', r: 'left',  ua: 'Гарної прогулянки! До побачення!', ph: 'Harnoyi prohulyanky! Do pobachennya!', en: 'Enjoy your walk! Goodbye!' },
+    ]
+  },
+  {
+    cat: 'daily', icon: '🛒', title: 'At the market', sub: 'Shopping for food',
+    lines: [
+      { s: 'Vendor', r: 'left',  ua: 'Доброго ранку! Що бажаєте?', ph: 'Dobroho ranku! Shcho bazhaete?', en: 'Good morning! What would you like?' },
+      { s: 'You',    r: 'right', ua: 'Доброго ранку! Скільки коштують ці яблука?', ph: 'Dobroho ranku! Skil\'ky koshtuyut\' tsi yabluka?', en: 'Good morning! How much are these apples?' },
+      { s: 'Vendor', r: 'left',  ua: 'Сорок гривень за кілограм.', ph: 'Sorok hryven\' za kilohram.', en: 'Forty hryvnias per kilogram.' },
+      { s: 'You',    r: 'right', ua: 'Добре. Дайте мені два кілограми.', ph: 'Dobre. Dayte meni dva kilohramи.', en: 'OK. Give me two kilograms.' },
+      { s: 'Vendor', r: 'left',  ua: 'Звичайно. Що ще?', ph: 'Zvychayno. Shcho shche?', en: 'Of course. What else?' },
+      { s: 'You',    r: 'right', ua: 'А скільки коштує хліб?', ph: 'A skil\'ky koshtuye khlib?', en: 'And how much is bread?' },
+      { s: 'Vendor', r: 'left',  ua: 'Двадцять п\'ять гривень за буханку.', ph: 'Dvadtsyat\' p\'yat\' hryven\' za bukhankу.', en: 'Twenty-five hryvnias for a loaf.' },
+      { s: 'You',    r: 'right', ua: 'Одну буханку, будь ласка. І є свіжі помідори?', ph: 'Odnu bukhankу, bud\' laska. I ye sviyzhi pomidory?', en: 'One loaf, please. And do you have fresh tomatoes?' },
+      { s: 'Vendor', r: 'left',  ua: 'Є! Ось вони — дуже свіжі, сьогоднішні.', ph: 'Ye! Os\' vony — duzhe sviyzhi, s\'ohodnishni.', en: 'Yes! Here they are — very fresh, from today.' },
+      { s: 'You',    r: 'right', ua: 'Чудово. Кілограм помідорів, будь ласка.', ph: 'Chudovo. Kilohram pomidoriv, bud\' laska.', en: 'Wonderful. One kilogram of tomatoes, please.' },
+      { s: 'Vendor', r: 'left',  ua: 'Ось. Щось ще?', ph: 'Os\'. Shchos\' shche?', en: 'Here. Anything else?' },
+      { s: 'You',    r: 'right', ua: 'Так. Маєте сир?', ph: 'Tak. Mayete syr?', en: 'Yes. Do you have cheese?' },
+      { s: 'Vendor', r: 'left',  ua: 'Маємо! Твердий чи м\'який?', ph: 'Mayemo! Tverdyy chy m\'yakyy?', en: 'We do! Hard or soft?' },
+      { s: 'You',    r: 'right', ua: 'Твердий, будь ласка. Сто грамів.', ph: 'Tverdyy, bud\' laska. Sto hramiv.', en: 'Hard, please. One hundred grams.' },
+      { s: 'Vendor', r: 'left',  ua: 'Ось. Ще щось?', ph: 'Os\'. Shche shchos\'?', en: 'Here. Anything more?' },
+      { s: 'You',    r: 'right', ua: 'Ні, дякую. Скільки всього?', ph: 'Ni, dyakuyu. Skil\'ky vs\'oho?', en: 'No, thank you. How much in total?' },
+      { s: 'Vendor', r: 'left',  ua: 'Сто п\'ятдесят гривень.', ph: 'Sto p\'yatdesyat\' hryven\'.', en: 'One hundred and fifty hryvnias.' },
+      { s: 'You',    r: 'right', ua: 'Ось двісті. Решту залиште собі.', ph: 'Os\' dvisti. Reshtu zalishte sobi.', en: 'Here\'s two hundred. Keep the change.' },
+      { s: 'Vendor', r: 'left',  ua: 'Дуже дякую! Приходьте ще!', ph: 'Duzhe dyakuyu! Prykhodte shche!', en: 'Thank you very much! Come again!' },
+      { s: 'You',    r: 'right', ua: 'Обов\'язково! До побачення!', ph: 'Obov\'yazkovo! Do pobachennya!', en: 'Definitely! Goodbye!' },
+    ]
+  },
+  {
+    cat: 'daily', icon: '🏥', title: 'At the pharmacy', sub: 'Getting medicine',
+    lines: [
+      { s: 'You',         r: 'right', ua: 'Добрий день. Можете допомогти?', ph: 'Dobryi den\'. Mozhete dopomohty?', en: 'Good afternoon. Can you help me?' },
+      { s: 'Pharmacist',  r: 'left',  ua: 'Звичайно! Що вас турбує?', ph: 'Zvychayno! Shcho vas turbуye?', en: 'Of course! What\'s bothering you?' },
+      { s: 'You',         r: 'right', ua: 'Болить голова і є температура.', ph: 'Bolyt\' holova i ye temperatura.', en: 'I have a headache and a fever.' },
+      { s: 'Pharmacist',  r: 'left',  ua: 'Давно це у вас?', ph: 'Davno tse u vas?', en: 'How long have you had this?' },
+      { s: 'You',         r: 'right', ua: 'З учора. Ще болить горло.', ph: 'Z uchora. Shche bolyt\' horlo.', en: 'Since yesterday. My throat also hurts.' },
+      { s: 'Pharmacist',  r: 'left',  ua: 'Зрозуміло. Алергія на ліки є?', ph: 'Zrozumilo. Alerhiya na liky ye?', en: 'I see. Are you allergic to any medicines?' },
+      { s: 'You',         r: 'right', ua: 'Ні, немає.', ph: 'Ni, nemaye.', en: 'No, none.' },
+      { s: 'Pharmacist',  r: 'left',  ua: 'Добре. Рекомендую парацетамол і спрей для горла.', ph: 'Dobre. Rekomenduyu paratsetamol i spray dlya horla.', en: 'Good. I recommend paracetamol and a throat spray.' },
+      { s: 'You',         r: 'right', ua: 'Добре. Як часто приймати?', ph: 'Dobre. Yak chasto prymaty?', en: 'OK. How often should I take them?' },
+      { s: 'Pharmacist',  r: 'left',  ua: 'Парацетамол — тричі на день, після їжі.', ph: 'Paratsetamol — trychi na den\', pislya yizhi.', en: 'Paracetamol — three times a day, after meals.' },
+      { s: 'You',         r: 'right', ua: 'А спрей?', ph: 'A spray?', en: 'And the spray?' },
+      { s: 'Pharmacist',  r: 'left',  ua: 'Спрей — чотири рази на день. Читайте інструкцію.', ph: 'Spray — chotyry razy na den\'. Chytayte instrukstsiyu.', en: 'Spray — four times a day. Read the instructions.' },
+      { s: 'You',         r: 'right', ua: 'Добре. Чи можна ці ліки без рецепту?', ph: 'Dobre. Chy mozhna tsi liky bez retseptu?', en: 'Good. Can I buy these medicines without a prescription?' },
+      { s: 'Pharmacist',  r: 'left',  ua: 'Так, обидва без рецепту.', ph: 'Tak, obydva bez retseptu.', en: 'Yes, both without a prescription.' },
+      { s: 'You',         r: 'right', ua: 'Відмінно. Скільки коштує?', ph: 'Vidminno. Skil\'ky koshtuye?', en: 'Excellent. How much does it cost?' },
+      { s: 'Pharmacist',  r: 'left',  ua: 'Усього двісті двадцять гривень.', ph: 'Us\'oho dvisti dvadtsyat\' hryven\'.', en: 'Two hundred and twenty hryvnias in total.' },
+      { s: 'You',         r: 'right', ua: 'Ось. Дякую за пораду.', ph: 'Os\'. Dyakuyu za poradu.', en: 'Here. Thank you for the advice.' },
+      { s: 'Pharmacist',  r: 'left',  ua: 'Будьте здорові! Якщо не краще — до лікаря.', ph: 'Bud\'te zdorovi! Yakshcho ne krashe — do likarya.', en: 'Get well! If you don\'t improve — see a doctor.' },
+      { s: 'You',         r: 'right', ua: 'Зрозумів. Дякую!', ph: 'Zrozumiv. Dyakuyu!', en: 'Understood. Thank you!' },
+      { s: 'Pharmacist',  r: 'left',  ua: 'Одужуйте! До побачення!', ph: 'Oduzhuyte! Do pobachennya!', en: 'Get better! Goodbye!' },
+    ]
+  },
+
+  // ---- SOCIAL ----
+  {
+    cat: 'social', icon: '🎓', title: 'Meeting a classmate', sub: 'First day of Ukrainian class',
+    lines: [
+      { s: 'You',       r: 'right', ua: 'Привіт! Ти теж на урок української?', ph: 'Pryvit! Ty tezh na urok ukrayins\'koyi?', en: 'Hi! Are you also here for the Ukrainian lesson?' },
+      { s: 'Classmate', r: 'left',  ua: 'Так! Привіт! Мене звати Олена.', ph: 'Tak! Pryvit! Mene zvaty Olena.', en: 'Yes! Hi! My name is Olena.' },
+      { s: 'You',       r: 'right', ua: 'Дуже приємно! Я Антуан. Ти звідки?', ph: 'Duzhe pryyemno! Ya Antuan. Ty zvidky?', en: 'Nice to meet you! I\'m Antoine. Where are you from?' },
+      { s: 'Classmate', r: 'left',  ua: 'Я з Польщі. А ти?', ph: 'Ya z Pol\'shchi. A ty?', en: 'I\'m from Poland. And you?' },
+      { s: 'You',       r: 'right', ua: 'Я з Франції. Давно вчиш українську?', ph: 'Ya z Frantsiyi. Davno vchysh ukrayins\'ku?', en: 'I\'m from France. Have you been learning Ukrainian for long?' },
+      { s: 'Classmate', r: 'left',  ua: 'Ні, тільки місяць. А ти?', ph: 'Ni, til\'ky misyats\'. A ty?', en: 'No, only a month. And you?' },
+      { s: 'You',       r: 'right', ua: 'Теж нещодавно. Це важка мова, правда?', ph: 'Tezh neshchodavno. Tse vazhka mova, pravda?', en: 'Also recently. It\'s a difficult language, right?' },
+      { s: 'Classmate', r: 'left',  ua: 'Так, але цікава! Мені подобається кирилиця.', ph: 'Tak, ale tsikava! Meni podobayetsya kyrylitsya.', en: 'Yes, but interesting! I like the Cyrillic alphabet.' },
+      { s: 'You',       r: 'right', ua: 'Я ще вчу алфавіт. Ти вже читаєш?', ph: 'Ya shche vchu alfavit. Ty vzhe chytayesh?', en: 'I\'m still learning the alphabet. Can you already read?' },
+      { s: 'Classmate', r: 'left',  ua: 'Трохи. Повільно, але читаю.', ph: 'Trokhy. Povilno, ale chytayu.', en: 'A little. Slowly, but I can read.' },
+      { s: 'You',       r: 'right', ua: 'Чудово! Може, будемо вчитися разом?', ph: 'Chudovo! Mozhe, budemo vchytysya razom?', en: 'Wonderful! Maybe we can study together?' },
+      { s: 'Classmate', r: 'left',  ua: 'З задоволенням! Це гарна ідея.', ph: 'Z zadovolennyam! Tse harna ideya.', en: 'With pleasure! That\'s a good idea.' },
+      { s: 'You',       r: 'right', ua: 'Де ти зазвичай вчишся?', ph: 'De ty zazvychaу vchyshsya?', en: 'Where do you usually study?' },
+      { s: 'Classmate', r: 'left',  ua: 'У кафе або вдома. Тобі де зручно?', ph: 'U kafe abo vdoma. Tobi de zruchno?', en: 'In a café or at home. Where\'s convenient for you?' },
+      { s: 'You',       r: 'right', ua: 'У кафе — чудово! Коли тобі зручно?', ph: 'U kafe — chudovo! Koly tobi zruchno?', en: 'A café — great! When is convenient for you?' },
+      { s: 'Classmate', r: 'left',  ua: 'У п\'ятницю ввечері? Після занять.', ph: 'U p\'yatnytsyu vvecheri? Pislya zanyat\'.', en: 'Friday evening? After class.' },
+      { s: 'You',       r: 'right', ua: 'Відмінно! Домовилися. Обміняємося номерами?', ph: 'Vidminno! Domovylysya. Obminyayemsya nomeramy?', en: 'Excellent! It\'s a deal. Shall we exchange numbers?' },
+      { s: 'Classmate', r: 'left',  ua: 'Звичайно! Ось мій номер.', ph: 'Zvychayno! Os\' miy nomer.', en: 'Of course! Here\'s my number.' },
+      { s: 'You',       r: 'right', ua: 'Дякую! Напишу тобі після уроку.', ph: 'Dyakuyu! Napyshu tobi pislya uroku.', en: 'Thank you! I\'ll message you after the lesson.' },
+      { s: 'Classmate', r: 'left',  ua: 'Чудово! Починаємо? Уже час.', ph: 'Chudovo! Pochynayemo? Vzhe chas.', en: 'Wonderful! Shall we start? It\'s time.' },
+    ]
+  },
+  {
+    cat: 'social', icon: '🍺', title: 'Meeting a friend', sub: 'Catching up after a long time',
+    lines: [
+      { s: 'Friend', r: 'left',  ua: 'О! Антуане! Скільки років, скільки зим!', ph: 'O! Antuane! Skil\'ky rokiv, skil\'ky zym!', en: 'Oh! Antoine! Long time no see!' },
+      { s: 'You',    r: 'right', ua: 'Привіт, Максиме! Як ти?', ph: 'Pryvit, Maksyme! Yak ty?', en: 'Hi, Maksym! How are you?' },
+      { s: 'Friend', r: 'left',  ua: 'Чудово, дякую! А ти як?', ph: 'Chudovo, dyakuyu! A ty yak?', en: 'Wonderful, thanks! And how are you?' },
+      { s: 'You',    r: 'right', ua: 'Добре! Виглядаєш чудово.', ph: 'Dobre! Vyhlyadayesh chudovo.', en: 'Good! You look great.' },
+      { s: 'Friend', r: 'left',  ua: 'Дякую! Ти теж. Що нового у тебе?', ph: 'Dyakuyu! Ty tezh. Shcho novoho u tebe?', en: 'Thanks! You too. What\'s new with you?' },
+      { s: 'You',    r: 'right', ua: 'Вчу українську! Вже два місяці.', ph: 'Vchu ukrayins\'ku! Vzhe dva misyatsi.', en: 'I\'m learning Ukrainian! Already two months.' },
+      { s: 'Friend', r: 'left',  ua: 'Серйозно? Навіщо?', ph: 'S\'yrozno? Navishcho?', en: 'Seriously? Why?' },
+      { s: 'You',    r: 'right', ua: 'Хочу краще розуміти людей тут.', ph: 'Khochu krashe rozumity lyudey tut.', en: 'I want to understand people here better.' },
+      { s: 'Friend', r: 'left',  ua: 'Це дуже гарно! Де вчишся?', ph: 'Tse duzhe harno! De vchyshsya?', en: 'That\'s very nice! Where do you study?' },
+      { s: 'You',    r: 'right', ua: 'На курсах і самостійно. Є гарний застосунок.', ph: 'Na kursakh i samostiyno. Ye harnyy zastosunok.', en: 'At a course and independently. There\'s a good app.' },
+      { s: 'Friend', r: 'left',  ua: 'Слухай, а поїдемо разом кудись?', ph: 'Slukhay, a poyidemo razom kudys\'?', en: 'Listen, shall we go somewhere together?' },
+      { s: 'You',    r: 'right', ua: 'Із задоволенням! Куди маєш на увазі?', ph: 'Iz zadovolennyam! Kudy mayesh na uvazi?', en: 'With pleasure! Where do you have in mind?' },
+      { s: 'Friend', r: 'left',  ua: 'Є класний ресторан на Подолі. Любиш борщ?', ph: 'Ye klasnyy restoran na Podoli. Lyubish borshch?', en: 'There\'s a great restaurant on Podil. Do you like borscht?' },
+      { s: 'You',    r: 'right', ua: 'Обожнюю борщ! Коли йдемо?', ph: 'Obozhnуyu borshch! Koly ydemo?', en: 'I love borscht! When shall we go?' },
+      { s: 'Friend', r: 'left',  ua: 'Може, сьогодні ввечері? О сьомій?', ph: 'Mozhe, s\'ohodni vvecheri? O s\'omiy?', en: 'Maybe tonight? At seven?' },
+      { s: 'You',    r: 'right', ua: 'Ідеально! Адресу скинеш?', ph: 'Ideal\'no! Adresu skynesh?', en: 'Perfect! Will you send me the address?' },
+      { s: 'Friend', r: 'left',  ua: 'Зараз напишу в телеграм. Номер той самий?', ph: 'Zaraz napyshu v telehram. Nomer toy samyy?', en: 'I\'ll write now on Telegram. Same number?' },
+      { s: 'You',    r: 'right', ua: 'Так, той самий.', ph: 'Tak, toy samyy.', en: 'Yes, the same one.' },
+      { s: 'Friend', r: 'left',  ua: 'Відмінно! Тоді до вечора!', ph: 'Vidminno! Todi do vechora!', en: 'Excellent! See you this evening then!' },
+      { s: 'You',    r: 'right', ua: 'До зустрічі! Дякую за запрошення!', ph: 'Do zustrichi! Dyakuyu za zaproshennya!', en: 'See you! Thank you for the invitation!' },
+    ]
+  },
+
+  // ---- WORK ----
+  {
+    cat: 'work', icon: '💼', title: 'First day at the office', sub: 'Meeting your new colleagues',
+    lines: [
+      { s: 'Colleague', r: 'left',  ua: 'Добрий ранок! Ви новий у нас?', ph: 'Dobryi ranok! Vy novyy u nas?', en: 'Good morning! Are you new here?' },
+      { s: 'You',       r: 'right', ua: 'Так! Доброго ранку! Я Антуан, новий розробник.', ph: 'Tak! Dobroho ranku! Ya Antuan, novyy rozrobnyk.', en: 'Yes! Good morning! I\'m Antoine, the new developer.' },
+      { s: 'Colleague', r: 'left',  ua: 'Дуже приємно! Я Іван. Ласкаво просимо!', ph: 'Duzhe pryyemno! Ya Ivan. Laskavo prosymo!', en: 'Very nice to meet you! I\'m Ivan. Welcome!' },
+      { s: 'You',       r: 'right', ua: 'Дякую! Давно ви тут працюєте?', ph: 'Dyakuyu! Davno vy tut pratsuyete?', en: 'Thank you! Have you worked here long?' },
+      { s: 'Colleague', r: 'left',  ua: 'Три роки. Дуже гарна команда.', ph: 'Try roky. Duzhe harna komanda.', en: 'Three years. A very good team.' },
+      { s: 'You',       r: 'right', ua: 'Чудово! Де мій робочий стіл?', ph: 'Chudovo! De miy robochyy stil\'?', en: 'Wonderful! Where is my desk?' },
+      { s: 'Colleague', r: 'left',  ua: 'Ось, поруч зі мною. Я покажу вам усе.', ph: 'Os\', poruch zi mnoyu. Ya pokazhu vam use.', en: 'Here, next to me. I\'ll show you everything.' },
+      { s: 'You',       r: 'right', ua: 'Дякую! А де кухня?', ph: 'Dyakuyu! A de kukhnya?', en: 'Thank you! And where is the kitchen?' },
+      { s: 'Colleague', r: 'left',  ua: 'На другому поверсі. Там є кава і чай.', ph: 'Na druhomu poversi. Tam ye kava i chay.', en: 'On the second floor. There\'s coffee and tea there.' },
+      { s: 'You',       r: 'right', ua: 'Чудово! У вас є стендап щоранку?', ph: 'Chudovo! U vas ye stendap shchoranku?', en: 'Wonderful! Do you have a standup every morning?' },
+      { s: 'Colleague', r: 'left',  ua: 'Так, о дев\'ятій. П\'ятнадцять хвилин.', ph: 'Tak, o dev\'yatiy. P\'yatnadtsyat\' khvylyn.', en: 'Yes, at nine. Fifteen minutes.' },
+      { s: 'You',       r: 'right', ua: 'Добре. Якою мовою — українською?', ph: 'Dobre. Yakoyu movoyu — ukrayins\'koyu?', en: 'Good. In which language — Ukrainian?' },
+      { s: 'Colleague', r: 'left',  ua: 'Так, але не хвилюйтеся. Говоріть як вмієте.', ph: 'Tak, ale ne khvylyuytes\'ya. Hovorit\' yak vmiyete.', en: 'Yes, but don\'t worry. Speak as best you can.' },
+      { s: 'You',       r: 'right', ua: 'Добре, спробую. Я ще вчу мову.', ph: 'Dobre, sprobuyu. Ya shche vchu movu.', en: 'OK, I\'ll try. I\'m still learning the language.' },
+      { s: 'Colleague', r: 'left',  ua: 'Всі допоможуть! Команда дружня.', ph: 'Vsi dopomozhat\'! Komanda druzhnya.', en: 'Everyone will help! The team is friendly.' },
+      { s: 'You',       r: 'right', ua: 'Радий це чути. Коли обід?', ph: 'Radyi tse chуty. Koly obid?', en: 'Glad to hear it. When is lunch?' },
+      { s: 'Colleague', r: 'left',  ua: 'О першій. Зазвичай разом ідемо.', ph: 'O pershiy. Zazvychaу razom ydemo.', en: 'At one. We usually go together.' },
+      { s: 'You',       r: 'right', ua: 'Можна з вами?', ph: 'Mozhna z vamy?', en: 'May I join you?' },
+      { s: 'Colleague', r: 'left',  ua: 'Звичайно! Будемо раді.', ph: 'Zvychayno! Budemo radi.', en: 'Of course! We\'ll be happy to have you.' },
+      { s: 'You',       r: 'right', ua: 'Дякую, Іване! Ви дуже привітний.', ph: 'Dyakuyu, Ivane! Vy duzhe pryvitnyy.', en: 'Thank you, Ivan! You\'re very welcoming.' },
+    ]
+  },
+  {
+    cat: 'work', icon: '📞', title: 'A phone call', sub: 'Scheduling a professional meeting',
+    lines: [
+      { s: 'Colleague', r: 'left',  ua: 'Алло?', ph: 'Allo?', en: 'Hello?' },
+      { s: 'You',       r: 'right', ua: 'Добрий день! Це Антуан. Як справи?', ph: 'Dobryi den\'! Tse Antuan. Yak spravy?', en: 'Good afternoon! It\'s Antoine. How are things?' },
+      { s: 'Colleague', r: 'left',  ua: 'Добре, дякую! Що хотіли?', ph: 'Dobre, dyakuyu! Shcho khotily?', en: 'Good, thanks! What did you want?' },
+      { s: 'You',       r: 'right', ua: 'Треба обговорити проект. Коли вам зручно?', ph: 'Treba obhovoryty proekt. Koly vam zruchno?', en: 'We need to discuss the project. When is convenient for you?' },
+      { s: 'Colleague', r: 'left',  ua: 'Сьогодні я зайнятий. Завтра підійде?', ph: 'S\'ohodni ya zaynуatyy. Zavtra pidyde?', en: 'Today I\'m busy. Will tomorrow work?' },
+      { s: 'You',       r: 'right', ua: 'Так. Вранці чи вдень?', ph: 'Tak. Vrantsi chy vden\'?', en: 'Yes. In the morning or afternoon?' },
+      { s: 'Colleague', r: 'left',  ua: 'Вранці краще. О десятій?', ph: 'Vrantsi krashe. O desyatiy?', en: 'Morning is better. At ten?' },
+      { s: 'You',       r: 'right', ua: 'О десятій у мене нарада. О одинадцятій?', ph: 'O desyatiy u mene narada. O odynadsyatiy?', en: 'At ten I have a meeting. At eleven?' },
+      { s: 'Colleague', r: 'left',  ua: 'О одинадцятій добре. Де зустрінемося?', ph: 'O odynadsyatiy dobre. De zustrinemosya?', en: 'Eleven is fine. Where shall we meet?' },
+      { s: 'You',       r: 'right', ua: 'У переговорній кімнаті три.', ph: 'U perehovorniy kimnati try.', en: 'In meeting room three.' },
+      { s: 'Colleague', r: 'left',  ua: 'Добре. Що треба підготувати?', ph: 'Dobre. Shcho treba pidhotuvaty?', en: 'Good. What needs to be prepared?' },
+      { s: 'You',       r: 'right', ua: 'Принесіть звіт за минулий місяць.', ph: 'Prynесit\' zvit za mynulyy misyats\'.', en: 'Bring the report from last month.' },
+      { s: 'Colleague', r: 'left',  ua: 'Добре. Ще хтось буде?', ph: 'Dobre. Shche khtos\' bude?', en: 'Good. Will anyone else be there?' },
+      { s: 'You',       r: 'right', ua: 'Так, Олена теж буде.', ph: 'Tak, Olena tezh bude.', en: 'Yes, Olena will be there too.' },
+      { s: 'Colleague', r: 'left',  ua: 'Зрозуміло. Тривалість — скільки?', ph: 'Zrozumilo. Tryvalіst\' — skil\'ky?', en: 'Understood. Duration — how long?' },
+      { s: 'You',       r: 'right', ua: 'Думаю, година. Може, менше.', ph: 'Dumayu, hodyna. Mozhe, menshe.', en: 'I think an hour. Maybe less.' },
+      { s: 'Colleague', r: 'left',  ua: 'Добре. Надішліть порядок денний?', ph: 'Dobre. Nadishlіt\' poryadok денnyy?', en: 'Good. Can you send the agenda?' },
+      { s: 'You',       r: 'right', ua: 'Зараз надішлю на пошту. Дякую!', ph: 'Zaraz nadishlu na poshtu. Dyakuyu!', en: 'I\'ll send it to your email now. Thank you!' },
+      { s: 'Colleague', r: 'left',  ua: 'Дякую. До завтра!', ph: 'Dyakuyu. Do zavtra!', en: 'Thank you. See you tomorrow!' },
+      { s: 'You',       r: 'right', ua: 'До завтра! Гарного вечора!', ph: 'Do zavtra! Harnoho vechora!', en: 'See you tomorrow! Have a good evening!' },
+    ]
+  },
+
+  // ---- FAMILY ----
+  {
+    cat: 'family', icon: '🏠', title: 'Meeting the family', sub: 'Visiting a Ukrainian host family',
+    lines: [
+      { s: 'Host',   r: 'left',  ua: 'Ласкаво просимо! Заходьте, будь ласка!', ph: 'Laskavo prosymo! Zakhodte, bud\' laska!', en: 'Welcome! Please come in!' },
+      { s: 'You',    r: 'right', ua: 'Дякую! Яке гарне помешкання!', ph: 'Dyakuyu! Yake harne pomeshkannya!', en: 'Thank you! What a lovely home!' },
+      { s: 'Host',   r: 'left',  ua: 'Дякую! Це наша донька Соня. Соню, привітайся!', ph: 'Dyakuyu! Tse nasha don\'ka Sonya. Sonyu, pryviytaysya!', en: 'Thank you! This is our daughter Sonya. Sonya, say hello!' },
+      { s: 'Sonya',  r: 'left',  ua: 'Привіт! Радо познайомитись!', ph: 'Pryvit! Rado poznayomytys\'!', en: 'Hi! Nice to meet you!' },
+      { s: 'You',    r: 'right', ua: 'Привіт, Соню! Дуже приємно! Скільки тобі років?', ph: 'Pryvit, Sonyu! Duzhe pryyemno! Skil\'ky tobi rokiv?', en: 'Hi Sonya! Very nice! How old are you?' },
+      { s: 'Sonya',  r: 'left',  ua: 'Мені чотирнадцять.', ph: 'Meni chotyrnadtsyat\'.', en: 'I\'m fourteen.' },
+      { s: 'You',    r: 'right', ua: 'О! А я привіз вам невеличкий подарунок.', ph: 'O! A ya pryviz vam nevelychkyy podarunok.', en: 'Oh! And I brought you a small gift.' },
+      { s: 'Host',   r: 'left',  ua: 'Ой, не треба було! Дякуємо!', ph: 'Oy, ne treba bulo! Dyakuyemo!', en: 'Oh, you shouldn\'t have! Thank you!' },
+      { s: 'You',    r: 'right', ua: 'Це французький шоколад. Сподіваюся, смакуватиме.', ph: 'Tse frantsuz\'kyy shokolad. Spodivayusya, smaкuvatyme.', en: 'It\'s French chocolate. I hope you\'ll like it.' },
+      { s: 'Host',   r: 'left',  ua: 'Обожнюємо шоколад! Сідайте до столу — обід готовий.', ph: 'Obozhnуyemo shokolad! Sidayte do stolu — obid hotovyy.', en: 'We love chocolate! Sit at the table — lunch is ready.' },
+      { s: 'You',    r: 'right', ua: 'Що смачно пахне! Що ви приготували?', ph: 'Shcho smachno pakhne! Shcho vy pryhоtuvaly?', en: 'What a lovely smell! What did you cook?' },
+      { s: 'Host',   r: 'left',  ua: 'Борщ і вареники з картоплею. Любите?', ph: 'Borshch i varenуky z kartopleyyu. Lyubyte?', en: 'Borscht and varenyky with potato. Do you like them?' },
+      { s: 'You',    r: 'right', ua: 'Дуже! Моя перша українська кухня вдома.', ph: 'Duzhe! Moya persha ukrayins\'ka kukhnya vdoma.', en: 'Very much! My first homemade Ukrainian food.' },
+      { s: 'Host',   r: 'left',  ua: 'Тоді спробуйте! Смачного!', ph: 'Todi sprobuyte! Smachnoho!', en: 'Then try it! Enjoy your meal!' },
+      { s: 'You',    r: 'right', ua: 'Смачного! Ммм... Це неймовірно смачно!', ph: 'Smachnoho! Mmm... Tse neymovirno smachno!', en: 'Bon appétit! Mmm... This is incredibly delicious!' },
+      { s: 'Host',   r: 'left',  ua: 'Радо чути! Ще покласти?', ph: 'Rado chuty! Shche poklasty?', en: 'Glad to hear it! Would you like more?' },
+      { s: 'You',    r: 'right', ua: 'Будь ласка! Ви дуже добре готуєте.', ph: 'Bud\' laska! Vy duzhe dobre hotuyete.', en: 'Yes please! You cook very well.' },
+      { s: 'Host',   r: 'left',  ua: 'Дякую! Розкажіть про себе. Що ви робите?', ph: 'Dyakuyu! Rozkazhit\' pro sebe. Shcho vy robyte?', en: 'Thank you! Tell us about yourself. What do you do?' },
+      { s: 'You',    r: 'right', ua: 'Я програміст. Працюю в київській компанії.', ph: 'Ya prohramist. Pratsyuyu v kyyivs\'kiy kompaniyi.', en: 'I\'m a programmer. I work in a Kyiv company.' },
+      { s: 'Host',   r: 'left',  ua: 'Чудово! Приходьте ще — двері завжди відкриті!', ph: 'Chudovo! Prykhodte shche — dveri zavzhdy vidkryti!', en: 'Wonderful! Come again — the door is always open!' },
+    ]
+  },
+  {
+    cat: 'family', icon: '🎂', title: 'A family celebration', sub: 'Birthday dinner with the family',
+    lines: [
+      { s: 'Grandma', r: 'left',  ua: 'З днем народження, Антуане! Ура!', ph: 'Z dnem narodzhennya, Antuane! Ura!', en: 'Happy birthday, Antoine! Hooray!' },
+      { s: 'You',     r: 'right', ua: 'Дякую! Але сьогодні не мій день народження!', ph: 'Dyakuyu! Ale s\'ohodni ne miy den\' narodzhennya!', en: 'Thank you! But today is not my birthday!' },
+      { s: 'Uncle',   r: 'left',  ua: 'Ха-ха! Тоді просто ласкаво просимо в родину!', ph: 'Kha-kha! Todi prosto laskavo prosymo v rodуnu!', en: 'Ha-ha! Then simply welcome to the family!' },
+      { s: 'You',     r: 'right', ua: 'Дякую! Стільки людей! Скільки вас тут?', ph: 'Dyakuyu! Stil\'ky lyudey! Skil\'ky vas tut?', en: 'Thank you! So many people! How many of you are here?' },
+      { s: 'Uncle',   r: 'left',  ua: 'Нас дев\'ятнадцять сьогодні. Велика родина!', ph: 'Nas dev\'yatnadtsyat\' s\'ohodni. Velyka rodуna!', en: 'Nineteen of us today. A big family!' },
+      { s: 'You',     r: 'right', ua: 'Неймовірно! У Франції у нас менша родина.', ph: 'Neymovirno! U Frantsiyi u nas mensha rodуna.', en: 'Incredible! In France our family is smaller.' },
+      { s: 'Grandma', r: 'left',  ua: 'У нас так заведено. Ось ваша тарілка!', ph: 'U nas tak zavedeno. Os\' vasha tarilka!', en: 'That\'s how it is with us. Here\'s your plate!' },
+      { s: 'You',     r: 'right', ua: 'Дякую! Що це за страва?', ph: 'Dyakuyu! Shcho tse za strava?', en: 'Thank you! What dish is this?' },
+      { s: 'Grandma', r: 'left',  ua: 'Це голубці — капуста з рисом і м\'ясом.', ph: 'Tse holubtsi — kapusta z rysom i m\'yasom.', en: 'These are holubtsi — cabbage with rice and meat.' },
+      { s: 'You',     r: 'right', ua: 'Ніколи не куштував! Можна?', ph: 'Nikoly ne kushtuvaу! Mozhna?', en: 'I\'ve never tasted it! May I?' },
+      { s: 'Grandma', r: 'left',  ua: 'Звичайно! Пригощайтеся!', ph: 'Zvychayno! Pryhoschayтесь!', en: 'Of course! Please help yourself!' },
+      { s: 'You',     r: 'right', ua: 'Смачно! Це бабусин рецепт?', ph: 'Smachno! Tse babusyn retsept?', en: 'Delicious! Is this grandma\'s recipe?' },
+      { s: 'Grandma', r: 'left',  ua: 'Так! Роблю їх сорок років вже.', ph: 'Tak! Roblu yikh sorok rokiv vzhe.', en: 'Yes! I\'ve been making them for forty years.' },
+      { s: 'You',     r: 'right', ua: 'Неймовірно! Навчите мене колись?', ph: 'Neymovirno! Navchyte mene kolys\'?', en: 'Incredible! Will you teach me someday?' },
+      { s: 'Grandma', r: 'left',  ua: 'Із задоволенням! Приходьте в неділю.', ph: 'Iz zadovolennyam! Prykhodte v nedilyu.', en: 'With pleasure! Come on Sunday.' },
+      { s: 'Uncle',   r: 'left',  ua: 'Хочемо тост! Антуан, скажи щось!', ph: 'Khochemo tost! Antuan, skazhy shchos\'!', en: 'We want a toast! Antoine, say something!' },
+      { s: 'You',     r: 'right', ua: 'О, добре! За нашу дружбу і цю прекрасну родину!', ph: 'O, dobre! Za nashu druzhbu i tsyu prekrasnu rodуnu!', en: 'Oh, OK! To our friendship and this wonderful family!' },
+      { s: 'All',     r: 'left',  ua: 'Будьмо! Ура!', ph: 'Bud\'mo! Ura!', en: 'Cheers! Hooray!' },
+      { s: 'You',     r: 'right', ua: 'Будьмо! Дякую, що прийняли мене!', ph: 'Bud\'mo! Dyakuyu, shcho pryynyaly mene!', en: 'Cheers! Thank you for welcoming me!' },
+      { s: 'Uncle',   r: 'left',  ua: 'Ти вже наш! Завжди будемо раді тебе бачити!', ph: 'Ty vzhe nash! Zavzhdy budemo radi tebe bachyty!', en: 'You\'re one of us now! We\'ll always be happy to see you!' },
+    ]
+  },
+];
+
+// =================== FLASHCARDS DATA ===================
+const cards = {
+  greetings: [
+    { ua: "Привіт", en: "Hello", ph: "Pryvit", ctx: "Informal greeting" },
+    { ua: "Доброго ранку", en: "Good morning", ph: "Dobroho ranku", ctx: "Morning greeting" },
+    { ua: "Добрий день", en: "Good afternoon", ph: "Dobryi den'", ctx: "Daytime greeting" },
+    { ua: "Добрий вечір", en: "Good evening", ph: "Dobryi vechir", ctx: "Evening greeting" },
+    { ua: "До побачення", en: "Goodbye", ph: "Do pobachennya", ctx: "Formal farewell" },
+    { ua: "Дякую", en: "Thank you", ph: "Dyakuyu", ctx: "Expressing gratitude" },
+    { ua: "Будь ласка", en: "Please / You're welcome", ph: "Bud' laska", ctx: "Politeness" },
+    { ua: "Вибачте", en: "Excuse me / Sorry", ph: "Vybachte", ctx: "Apology" },
+  ],
+  numbers: [
+    { ua: "Один", en: "One", ph: "Odyn", ctx: "1" }, { ua: "Два", en: "Two", ph: "Dva", ctx: "2" },
+    { ua: "Три", en: "Three", ph: "Try", ctx: "3" }, { ua: "Чотири", en: "Four", ph: "Chotyry", ctx: "4" },
+    { ua: "П'ять", en: "Five", ph: "P'yat'", ctx: "5" }, { ua: "Шість", en: "Six", ph: "Shist'", ctx: "6" },
+    { ua: "Сім", en: "Seven", ph: "Sim", ctx: "7" }, { ua: "Вісім", en: "Eight", ph: "Visim", ctx: "8" },
+    { ua: "Дев'ять", en: "Nine", ph: "Dev'yat'", ctx: "9" }, { ua: "Десять", en: "Ten", ph: "Desyat'", ctx: "10" },
+    { ua: "Скільки?", en: "How much?", ph: "Skil'ky?", ctx: "Asking price" },
+  ],
+  food: [
+    { ua: "Вода", en: "Water", ph: "Voda", ctx: "Drink" },
+    { ua: "Хліб", en: "Bread", ph: "Khlib", ctx: "Food" },
+    { ua: "Кава", en: "Coffee", ph: "Kava", ctx: "Drink" },
+    { ua: "Борщ", en: "Borscht", ph: "Borshch", ctx: "Ukrainian soup" },
+    { ua: "Вареники", en: "Dumplings", ph: "Varenуky", ctx: "Ukrainian dish" },
+    { ua: "Меню, будь ласка", en: "Menu, please", ph: "Menyu, bud' laska", ctx: "Restaurant" },
+    { ua: "Рахунок, будь ласка", en: "The bill, please", ph: "Rakhunok, bud' laska", ctx: "Paying" },
+    { ua: "Смачного!", en: "Enjoy your meal!", ph: "Smachnoho!", ctx: "Before eating" },
+  ],
+  transport: [
+    { ua: "Де зупинка?", en: "Where is the stop?", ph: "De zupynka?", ctx: "Bus/tram" },
+    { ua: "Квиток", en: "Ticket", ph: "Kvytok", ctx: "Transport" },
+    { ua: "Ліворуч", en: "Left", ph: "Livoruch", ctx: "Direction" },
+    { ua: "Праворуч", en: "Right", ph: "Pravoruch", ctx: "Direction" },
+    { ua: "Прямо", en: "Straight ahead", ph: "Pryamo", ctx: "Direction" },
+    { ua: "Вокзал", en: "Train station", ph: "Vokzal", ctx: "Transport hub" },
+    { ua: "Аеропорт", en: "Airport", ph: "Aeroport", ctx: "Transport hub" },
+  ],
+  shopping: [
+    { ua: "Скільки коштує?", en: "How much?", ph: "Skil'ky koshtuye?", ctx: "Asking price" },
+    { ua: "Дорого", en: "Expensive", ph: "Doroho", ctx: "Price" },
+    { ua: "Дешево", en: "Cheap", ph: "Deshevo", ctx: "Price" },
+    { ua: "Я хочу купити...", en: "I want to buy...", ph: "Ya khochu kupyty...", ctx: "Shopping" },
+    { ua: "Є знижка?", en: "Is there a discount?", ph: "Ye znyzhka?", ctx: "Negotiating" },
+  ],
+  emergency: [
+    { ua: "Допоможіть!", en: "Help!", ph: "Dopomozhit'!", ctx: "Emergency" },
+    { ua: "Виклич швидку", en: "Call an ambulance", ph: "Vyklych shvydku", ctx: "Medical" },
+    { ua: "Поліція", en: "Police", ph: "Politsiya", ctx: "Law enforcement" },
+    { ua: "Лікарня", en: "Hospital", ph: "Likarnya", ctx: "Medical" },
+    { ua: "Мені погано", en: "I feel sick", ph: "Meni pohano", ctx: "Health" },
+  ],
+};
+
+// =================== SPEECH ===================
+let speechOK = false, uaVoice = null;
+function initSpeech() {
+  if (!('speechSynthesis' in window)) { document.getElementById('speechNotice').textContent = '⚠️ Audio not supported in this browser.'; return; }
+  speechOK = true;
+  const find = () => {
+    const vv = speechSynthesis.getVoices();
+    uaVoice = vv.find(v => v.lang.startsWith('uk')) || vv.find(v => v.lang.startsWith('ru')) || null;
+    if (vv.length && !uaVoice) document.getElementById('speechNotice').textContent = '⚠️ No Ukrainian voice — using default. Install a Ukrainian TTS voice for best results.';
+  };
+  find(); speechSynthesis.onvoiceschanged = find;
+}
+function speak(text, btn) {
+  if (!speechOK) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'uk-UA'; if (uaVoice) u.voice = uaVoice; u.rate = 0.82;
+  if (btn) { const o = btn.textContent; btn.textContent = '⏸'; u.onend = u.onerror = () => btn.textContent = o; }
+  speechSynthesis.speak(u);
+}
+function speakCurrent() { speak(document.getElementById('cardUA').textContent, document.getElementById('speakBtn')); }
+
+// =================== TABS ===================
+function switchTab(id, el) {
+  document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  el.classList.add('active');
+}
+
+// =================== DIALOGUES ===================
+let currentFilter = 'all';
+
+function filterDialogues(cat, el) {
+  currentFilter = cat;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderDialogues();
+}
+
+function renderDialogues() {
+  const grid = document.getElementById('dialogueGrid');
+  const filtered = currentFilter === 'all' ? dialogues : dialogues.filter(d => d.cat === currentFilter);
+  const catLabels = { daily: '🏙️ Daily Life', social: '🤝 Social', work: '💼 Work', family: '👨‍👩‍👧 Family' };
+  grid.innerHTML = filtered.map((d, i) => {
+    const idx = dialogues.indexOf(d);
+    return `
+    <div class="dialogue-card" id="dcard-${idx}">
+      <div class="dialogue-header" onclick="toggleD(${idx})">
+        <div class="d-icon">${d.icon}</div>
+        <div class="d-info">
+          <div class="d-title">${d.title}</div>
+          <div class="d-sub">${d.sub}</div>
+        </div>
+        <div class="d-meta">
+          <div class="d-tag">${catLabels[d.cat]}</div>
+          <div class="d-lines">${d.lines.length} lines</div>
+        </div>
+        <div class="d-arrow">▼</div>
+      </div>
+      <div class="dialogue-body" id="dbody-${idx}">
+        ${d.lines.map(l => `
+          <div class="chat-line ${l.r}">
+            <div class="line-speaker">${l.s}</div>
+            <div class="line-row">
+              <div class="bubble">
+                <div class="b-ua">${l.ua}</div>
+                <div class="b-ph">${l.ph}</div>
+                <div class="b-en">${l.en}</div>
+              </div>
+              <button class="speak-sm" onclick="speak(${JSON.stringify(l.ua)},this)" title="Hear this line">🔊</button>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleD(idx) {
+  const card = document.getElementById('dcard-' + idx);
+  const body = document.getElementById('dbody-' + idx);
+  const isOpen = card.classList.contains('open');
+  // Close all
+  document.querySelectorAll('.dialogue-card').forEach(c => c.classList.remove('open'));
+  document.querySelectorAll('.dialogue-body').forEach(b => b.style.display = 'none');
+  if (!isOpen) {
+    card.classList.add('open');
+    body.style.display = 'block';
+  }
+  // Track progress
+  seenDialogues.add(idx);
+  updateProgress();
+}
+
+// =================== FLASHCARDS ===================
+let currentCat = 'greetings', currentIdx = 0;
+const seenCards = new Set(), seenDialogues = new Set();
+
+function selectCat(cat, el) {
+  document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  currentCat = cat; currentIdx = 0;
+  document.getElementById('mainCard').classList.remove('flipped');
+  updateCard();
+}
+
+function updateCard() {
+  const d = cards[currentCat], c = d[currentIdx];
+  document.getElementById('cardUA').textContent = c.ua;
+  document.getElementById('cardEN').textContent = c.en;
+  document.getElementById('cardPH').textContent = c.ph;
+  document.getElementById('cardCTX').textContent = c.ctx;
+  document.getElementById('cardCounter').textContent = `${currentIdx + 1} / ${d.length}`;
+  document.getElementById('mainCard').classList.remove('flipped');
+  document.getElementById('speakBtn').textContent = '🔊';
+  seenCards.add(currentCat + '-' + currentIdx);
+  updateProgress();
+}
+
+function flipCard() { document.getElementById('mainCard').classList.toggle('flipped'); }
+function nextCard() { const d = cards[currentCat]; currentIdx = (currentIdx + 1) % d.length; updateCard(); }
+function prevCard() { const d = cards[currentCat]; currentIdx = (currentIdx - 1 + d.length) % d.length; updateCard(); }
+
+function updateProgress() {
+  const totalCards = Object.values(cards).reduce((s,a) => s + a.length, 0);
+  const totalD = dialogues.length;
+  const pct = Math.round(((seenCards.size / totalCards) * 0.5 + (seenDialogues.size / totalD) * 0.5) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+// =================== INIT ===================
+initSpeech();
+renderDialogues();
+updateCard();
+</script>
+</body>
+</html>
