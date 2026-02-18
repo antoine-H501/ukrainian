@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Говори — Learn Ukrainian</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #D4A84B;
+    --blue: #1A3A6B;
+    --sky: #5B8FD4;
+    --cream: #FAF7F0;
+    --dark: #0F1F3D;
+    --text: #2C3E50;
+    --light-blue: #EBF1FB;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  header {
+    background: var(--dark);
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo { font-family: 'Playfair Display', serif; color: var(--gold); font-size: 1.6rem; letter-spacing: 1px; }
+  .logo span { color: #fff; font-size: 0.9rem; display: block; font-family: 'DM Sans', sans-serif; letter-spacing: 3px; font-weight: 300; }
+
+  .progress-bar { background: rgba(255,255,255,0.1); border-radius: 20px; height: 8px; width: 200px; overflow: hidden; }
+  .progress-fill { background: linear-gradient(90deg, var(--gold), #F0C060); height: 100%; border-radius: 20px; transition: width 0.5s ease; width: 0%; }
+
+  .tabs { display: flex; background: var(--blue); padding: 0 32px; }
+  .tab { padding: 14px 24px; cursor: pointer; color: rgba(255,255,255,0.6); font-size: 0.9rem; font-weight: 500; letter-spacing: 0.5px; border-bottom: 3px solid transparent; transition: all 0.2s; }
+  .tab:hover { color: #fff; }
+  .tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+  .content { display: none; padding: 48px 32px; max-width: 900px; margin: 0 auto; }
+  .content.active { display: block; }
+
+  .section-title { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--dark); margin-bottom: 8px; }
+  .section-sub { color: #7a8fa6; margin-bottom: 40px; font-size: 0.95rem; }
+
+  /* CATEGORY GRID */
+  .category-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; margin-bottom: 40px; }
+  .category-btn { background: #fff; border: 2px solid #e0e8f5; border-radius: 12px; padding: 14px 10px; text-align: center; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: all 0.2s; color: var(--text); }
+  .category-btn .cat-icon { font-size: 1.5rem; display: block; margin-bottom: 6px; }
+  .category-btn:hover, .category-btn.active { border-color: var(--sky); background: var(--light-blue); color: var(--blue); }
+
+  /* FLASHCARD */
+  .flashcard-area { display: flex; flex-direction: column; align-items: center; gap: 24px; }
+  .flashcard { width: 100%; max-width: 500px; height: 290px; perspective: 1000px; cursor: pointer; }
+  .flashcard-inner { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1); }
+  .flashcard.flipped .flashcard-inner { transform: rotateY(180deg); }
+  .card-face { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px; text-align: center; }
+  .card-front { background: linear-gradient(135deg, var(--dark) 0%, var(--blue) 100%); color: #fff; box-shadow: 0 20px 60px rgba(26,58,107,0.35); }
+  .card-back { background: linear-gradient(135deg, #fff 0%, #f0f6ff 100%); color: var(--dark); transform: rotateY(180deg); border: 2px solid var(--light-blue); box-shadow: 0 20px 60px rgba(0,0,0,0.08); }
+  .card-ukrainian { font-size: 2.2rem; font-family: 'Playfair Display', serif; margin-bottom: 6px; line-height: 1.2; }
+  .card-hint { font-size: 0.8rem; opacity: 0.6; margin-top: 12px; letter-spacing: 1px; text-transform: uppercase; }
+  .card-translation { font-size: 1.4rem; font-weight: 600; color: var(--blue); margin-bottom: 10px; }
+  .card-phonetic { font-size: 0.95rem; color: #7a8fa6; font-style: italic; }
+  .card-context { font-size: 0.85rem; color: var(--gold); margin-top: 12px; font-weight: 500; }
+
+  .card-controls { display: flex; gap: 16px; align-items: center; }
+  .btn { padding: 12px 28px; border-radius: 50px; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 0.9rem; transition: all 0.2s; }
+  .btn-primary { background: var(--gold); color: var(--dark); }
+  .btn-primary:hover { background: #e8b845; transform: translateY(-1px); }
+  .btn-outline { background: transparent; color: var(--blue); border: 2px solid var(--sky); }
+  .btn-outline:hover { background: var(--light-blue); }
+  .card-counter { font-size: 0.85rem; color: #7a8fa6; font-weight: 500; }
+
+  /* SPEAK BUTTONS */
+  .speak-btn { background: none; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #fff; font-size: 1.1rem; transition: all 0.2s; margin-top: 10px; }
+  .speak-btn:hover { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.7); }
+  .speak-btn.speaking { background: var(--gold); border-color: var(--gold); color: var(--dark); animation: pulse 0.8s infinite alternate; }
+  @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.1); } }
+
+  .speak-btn-sm { background: var(--light-blue); border: none; border-radius: 50%; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: var(--sky); font-size: 0.85rem; transition: all 0.2s; flex-shrink: 0; }
+  .speak-btn-sm:hover { background: var(--sky); color: #fff; }
+
+  .speech-notice { font-size: 0.8rem; color: #aab; text-align: center; min-height: 18px; }
+
+  /* DIALOGUES */
+  .dialogue-list { display: grid; gap: 16px; }
+  .dialogue-card { background: #fff; border-radius: 16px; overflow: hidden; border: 1.5px solid #e0e8f5; transition: all 0.2s; }
+  .dialogue-card:hover { border-color: var(--sky); box-shadow: 0 8px 30px rgba(91,143,212,0.12); transform: translateY(-2px); }
+  .dialogue-header { padding: 18px 24px; display: flex; align-items: center; gap: 16px; cursor: pointer; }
+  .dialogue-icon { font-size: 1.8rem; }
+  .dialogue-title { font-weight: 600; font-size: 1rem; }
+  .dialogue-sub { font-size: 0.8rem; color: #7a8fa6; margin-top: 2px; }
+  .dialogue-badge { margin-left: auto; background: var(--light-blue); color: var(--sky); font-size: 0.75rem; padding: 4px 10px; border-radius: 20px; font-weight: 600; white-space: nowrap; }
+  .dialogue-body { display: none; padding: 0 24px 24px; border-top: 1.5px solid #f0f4fb; }
+  .dialogue-body.open { display: block; }
+
+  .chat-bubble { display: flex; flex-direction: column; margin-top: 16px; }
+  .bubble-speaker { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 4px; color: #7a8fa6; }
+  .bubble-row { display: flex; align-items: flex-start; gap: 8px; }
+  .bubble { background: var(--light-blue); border-radius: 16px 16px 16px 4px; padding: 14px 18px; max-width: 90%; }
+  .chat-bubble.right { align-items: flex-end; }
+  .chat-bubble.right .bubble-row { flex-direction: row-reverse; }
+  .chat-bubble.right .bubble { background: var(--dark); color: #fff; border-radius: 16px 16px 4px 16px; }
+  .chat-bubble.right .bubble-speaker { text-align: right; }
+  .bubble-ua { font-size: 1.05rem; font-weight: 600; margin-bottom: 4px; font-family: 'Playfair Display', serif; }
+  .bubble-phonetic { font-size: 0.8rem; opacity: 0.7; font-style: italic; margin-bottom: 2px; }
+  .bubble-en { font-size: 0.85rem; opacity: 0.75; }
+
+  /* AI TUTOR CHAT */
+  #chat { display: flex; flex-direction: column; }
+  .chat-window-wrap { display: flex; flex-direction: column; height: 520px; }
+
+  .chat-intro { background: linear-gradient(135deg, var(--dark), var(--blue)); border-radius: 16px; padding: 18px 22px; color: #fff; margin-bottom: 16px; font-size: 0.88rem; line-height: 1.6; flex-shrink: 0; }
+  .chat-intro strong { color: var(--gold); }
+
+  .chat-messages { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; padding: 4px 2px; scrollbar-width: thin; scrollbar-color: #cdd8e8 transparent; }
+
+  .msg { display: flex; gap: 10px; animation: fadeUp 0.3s ease; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .msg.user { flex-direction: row-reverse; }
+  .msg-avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.95rem; flex-shrink: 0; }
+  .msg.tutor .msg-avatar { background: var(--blue); }
+  .msg.user .msg-avatar { background: var(--gold); }
+  .msg-bubble { max-width: 78%; padding: 12px 16px; border-radius: 18px; font-size: 0.91rem; line-height: 1.65; }
+  .msg.tutor .msg-bubble { background: #fff; border: 1.5px solid #e0e8f5; border-radius: 4px 18px 18px 18px; }
+  .msg.user .msg-bubble { background: var(--blue); color: #fff; border-radius: 18px 4px 18px 18px; }
+  .ua-phrase { font-family: 'Playfair Display', serif; font-weight: 700; color: var(--blue); }
+  .msg.user .msg-bubble .ua-phrase { color: var(--gold); }
+
+  .typing-indicator { display: flex; gap: 4px; align-items: center; }
+  .typing-indicator span { width: 7px; height: 7px; border-radius: 50%; background: var(--sky); opacity: 0.4; animation: blink 1.2s infinite; }
+  .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes blink { 0%,80%,100% { opacity: 0.2; } 40% { opacity: 1; } }
+
+  .suggestions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 10px; }
+  .suggestion { background: #fff; border: 1.5px solid #e0e8f5; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; cursor: pointer; color: var(--blue); font-weight: 500; transition: all 0.2s; }
+  .suggestion:hover { background: var(--light-blue); border-color: var(--sky); }
+
+  .chat-footer { display: flex; gap: 10px; margin-top: 12px; flex-shrink: 0; }
+  .chat-input { flex: 1; padding: 13px 18px; border-radius: 50px; border: 2px solid #e0e8f5; font-family: 'DM Sans', sans-serif; font-size: 0.93rem; color: var(--text); background: #fff; outline: none; transition: border-color 0.2s; }
+  .chat-input:focus { border-color: var(--sky); }
+  .chat-send { background: var(--gold); border: none; border-radius: 50px; padding: 13px 20px; cursor: pointer; font-size: 1.1rem; transition: all 0.2s; }
+  .chat-send:hover { background: #e8b845; transform: scale(1.05); }
+  .chat-send:disabled { opacity: 0.5; cursor: default; transform: none; }
+
+  @media (max-width: 600px) {
+    .content { padding: 24px 14px; }
+    .tabs { padding: 0 10px; }
+    .tab { padding: 12px 12px; font-size: 0.78rem; }
+    header { padding: 14px 16px; }
+    .progress-bar { width: 110px; }
+    .chat-window-wrap { height: 420px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Говори <span>Learn Ukrainian</span></div>
+  <div>
+    <div style="font-size:0.7rem;color:rgba(255,255,255,0.5);margin-bottom:4px;text-align:right">YOUR PROGRESS</div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  </div>
+</header>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('flashcards', this)">🃏 Flashcards</div>
+  <div class="tab" onclick="switchTab('dialogues', this)">💬 Dialogues</div>
+  <div class="tab" onclick="switchTab('chat', this)">🤖 Tutor Chat</div>
+</div>
+
+<!-- FLASHCARDS -->
+<div class="content active" id="flashcards">
+  <h1 class="section-title">Flashcard Practice</h1>
+  <p class="section-sub">Click the card to flip · tap 🔊 to hear pronunciation</p>
+
+  <div class="category-grid">
+    <div class="category-btn active" onclick="selectCategory('greetings', this)"><span class="cat-icon">👋</span>Greetings</div>
+    <div class="category-btn" onclick="selectCategory('numbers', this)"><span class="cat-icon">🔢</span>Numbers</div>
+    <div class="category-btn" onclick="selectCategory('food', this)"><span class="cat-icon">🍽️</span>Food</div>
+    <div class="category-btn" onclick="selectCategory('transport', this)"><span class="cat-icon">🚌</span>Transport</div>
+    <div class="category-btn" onclick="selectCategory('shopping', this)"><span class="cat-icon">🛍️</span>Shopping</div>
+    <div class="category-btn" onclick="selectCategory('emergency', this)"><span class="cat-icon">🆘</span>Emergency</div>
+  </div>
+
+  <div class="flashcard-area">
+    <div class="flashcard" id="mainCard" onclick="flipCard()">
+      <div class="flashcard-inner">
+        <div class="card-face card-front">
+          <div class="card-ukrainian" id="cardUkrainian">Привіт</div>
+          <button class="speak-btn" id="speakBtn" onclick="event.stopPropagation(); speakCurrent()" title="Hear pronunciation">🔊</button>
+          <div class="card-hint">↩ tap to flip</div>
+        </div>
+        <div class="card-face card-back">
+          <div class="card-translation" id="cardTranslation">Hello</div>
+          <div class="card-phonetic" id="cardPhonetic">Pryvit</div>
+          <div class="card-context" id="cardContext">Informal greeting</div>
+        </div>
+      </div>
+    </div>
+    <div id="speechNotice" class="speech-notice"></div>
+
+    <div class="card-controls">
+      <button class="btn btn-outline" onclick="prevCard()">← Prev</button>
+      <div class="card-counter" id="cardCounter">1 / 8</div>
+      <button class="btn btn-primary" onclick="nextCard()">Next →</button>
+    </div>
+  </div>
+</div>
+
+<!-- DIALOGUES -->
+<div class="content" id="dialogues">
+  <h1 class="section-title">Daily Dialogues</h1>
+  <p class="section-sub">Real conversations for everyday life. Tap 🔊 on any line to hear it.</p>
+  <div class="dialogue-list" id="dialogueList"></div>
+</div>
+
+<!-- AI TUTOR CHAT -->
+<div class="content" id="chat">
+  <h1 class="section-title">Tutor Chat</h1>
+  <p class="section-sub">Have a free conversation with your AI Ukrainian tutor.</p>
+
+  <div class="chat-intro">
+    👩‍🏫 Meet <strong>Oksana</strong>, your personal Ukrainian tutor. Ask for translations, vocabulary lessons, grammar tips, or simply practice chatting. She'll always show Ukrainian phrases with pronunciation guides!
+  </div>
+
+  <div class="chat-window-wrap">
+    <div class="chat-messages" id="chatMessages"></div>
+  </div>
+
+  <div class="suggestions" id="suggestions">
+    <div class="suggestion" onclick="sendSuggestion(this)">How do I say "Where is the toilet?"</div>
+    <div class="suggestion" onclick="sendSuggestion(this)">Teach me to count to 10</div>
+    <div class="suggestion" onclick="sendSuggestion(this)">How do I introduce myself?</div>
+    <div class="suggestion" onclick="sendSuggestion(this)">What's the difference between ти and ви?</div>
+  </div>
+
+  <div class="chat-footer">
+    <input class="chat-input" id="chatInput" placeholder="Ask in English or try Ukrainian..." onkeydown="if(event.key==='Enter' && !event.shiftKey) sendMessage()" />
+    <button class="chat-send" id="sendBtn" onclick="sendMessage()">➤</button>
+  </div>
+</div>
+
+<script>
+// ===================== DATA =====================
+const cards = {
+  greetings: [
+    { ua: "Привіт", en: "Hello", ph: "Pryvit", ctx: "Informal greeting" },
+    { ua: "Доброго ранку", en: "Good morning", ph: "Dobroho ranku", ctx: "Morning greeting" },
+    { ua: "Добрий день", en: "Good afternoon", ph: "Dobryi den'", ctx: "Daytime greeting" },
+    { ua: "Добрий вечір", en: "Good evening", ph: "Dobryi vechir", ctx: "Evening greeting" },
+    { ua: "До побачення", en: "Goodbye", ph: "Do pobachennya", ctx: "Formal farewell" },
+    { ua: "Дякую", en: "Thank you", ph: "Dyakuyu", ctx: "Expressing gratitude" },
+    { ua: "Будь ласка", en: "Please / You're welcome", ph: "Bud' laska", ctx: "Politeness" },
+    { ua: "Вибачте", en: "Excuse me / Sorry", ph: "Vybachte", ctx: "Apology or attention" },
+  ],
+  numbers: [
+    { ua: "Один", en: "One", ph: "Odyn", ctx: "1" },
+    { ua: "Два", en: "Two", ph: "Dva", ctx: "2" },
+    { ua: "Три", en: "Three", ph: "Try", ctx: "3" },
+    { ua: "Чотири", en: "Four", ph: "Chotyry", ctx: "4" },
+    { ua: "П'ять", en: "Five", ph: "P'yat'", ctx: "5" },
+    { ua: "Шість", en: "Six", ph: "Shist'", ctx: "6" },
+    { ua: "Сім", en: "Seven", ph: "Sim", ctx: "7" },
+    { ua: "Вісім", en: "Eight", ph: "Visim", ctx: "8" },
+    { ua: "Дев'ять", en: "Nine", ph: "Dev'yat'", ctx: "9" },
+    { ua: "Десять", en: "Ten", ph: "Desyat'", ctx: "10" },
+    { ua: "Скільки?", en: "How much?", ph: "Skil'ky?", ctx: "Asking price" },
+  ],
+  food: [
+    { ua: "Вода", en: "Water", ph: "Voda", ctx: "Essential drink" },
+    { ua: "Хліб", en: "Bread", ph: "Khlib", ctx: "Staple food" },
+    { ua: "Кава", en: "Coffee", ph: "Kava", ctx: "Popular drink" },
+    { ua: "Меню, будь ласка", en: "Menu, please", ph: "Menyu, bud' laska", ctx: "At a restaurant" },
+    { ua: "Рахунок, будь ласка", en: "The bill, please", ph: "Rakhunok, bud' laska", ctx: "Paying" },
+    { ua: "Смачного!", en: "Enjoy your meal!", ph: "Smachnoho!", ctx: "Before eating" },
+    { ua: "Я вегетаріанець", en: "I am vegetarian", ph: "Ya vehetarianets'", ctx: "Dietary info" },
+  ],
+  transport: [
+    { ua: "Де зупинка?", en: "Where is the stop?", ph: "De zupynka?", ctx: "Bus/tram stop" },
+    { ua: "Квиток", en: "Ticket", ph: "Kvytok", ctx: "Transport ticket" },
+    { ua: "Ліворуч", en: "Left", ph: "Livoruch", ctx: "Direction" },
+    { ua: "Праворуч", en: "Right", ph: "Pravoruch", ctx: "Direction" },
+    { ua: "Прямо", en: "Straight ahead", ph: "Pryamo", ctx: "Direction" },
+    { ua: "Вокзал", en: "Train station", ph: "Vokzal", ctx: "Transport hub" },
+    { ua: "Аеропорт", en: "Airport", ph: "Aeroport", ctx: "Transport hub" },
+  ],
+  shopping: [
+    { ua: "Скільки коштує?", en: "How much does it cost?", ph: "Skil'ky koshtuye?", ctx: "Asking price" },
+    { ua: "Дорого", en: "Expensive", ph: "Doroho", ctx: "Price comment" },
+    { ua: "Дешево", en: "Cheap", ph: "Deshevo", ctx: "Price comment" },
+    { ua: "Я хочу купити...", en: "I want to buy...", ph: "Ya khochu kupyty...", ctx: "Shopping intent" },
+    { ua: "Є знижка?", en: "Is there a discount?", ph: "Ye znyzhka?", ctx: "Negotiating" },
+  ],
+  emergency: [
+    { ua: "Допоможіть!", en: "Help!", ph: "Dopomozhit'!", ctx: "Calling for help" },
+    { ua: "Виклич швидку", en: "Call an ambulance", ph: "Vyklych shvydku", ctx: "Medical emergency" },
+    { ua: "Поліція", en: "Police", ph: "Politsiya", ctx: "Law enforcement" },
+    { ua: "Лікарня", en: "Hospital", ph: "Likarnya", ctx: "Medical facility" },
+    { ua: "Мені погано", en: "I feel sick", ph: "Meni pohano", ctx: "Health issue" },
+  ],
+};
+
+const dialogues = [
+  {
+    icon: "☕", title: "At the café", sub: "Ordering a drink",
+    lines: [
+      { speaker: "Barista", side: "left", ua: "Доброго ранку! Що бажаєте?", ph: "Dobroho ranku! Shcho bazhaete?", en: "Good morning! What would you like?" },
+      { speaker: "You", side: "right", ua: "Добрий ранок! Каву, будь ласка.", ph: "Dobryi ranok! Kavu, bud' laska.", en: "Good morning! A coffee, please." },
+      { speaker: "Barista", side: "left", ua: "З молоком?", ph: "Z molokom?", en: "With milk?" },
+      { speaker: "You", side: "right", ua: "Так, дякую.", ph: "Tak, dyakuyu.", en: "Yes, thank you." },
+      { speaker: "Barista", side: "left", ua: "Скільки цукру?", ph: "Skil'ky tsukru?", en: "How much sugar?" },
+      { speaker: "You", side: "right", ua: "Без цукру, будь ласка.", ph: "Bez tsukru, bud' laska.", en: "Without sugar, please." },
+    ]
+  },
+  {
+    icon: "🚌", title: "On the bus", sub: "Asking for directions",
+    lines: [
+      { speaker: "You", side: "right", ua: "Вибачте, де центральна площа?", ph: "Vybachte, de tsentral'na ploshcha?", en: "Excuse me, where is the central square?" },
+      { speaker: "Passenger", side: "left", ua: "Прямо, потім праворуч.", ph: "Pryamo, potim pravoruch.", en: "Straight ahead, then right." },
+      { speaker: "You", side: "right", ua: "Далеко звідси?", ph: "Daleko zvidsy?", en: "Is it far from here?" },
+      { speaker: "Passenger", side: "left", ua: "Ні, п'ять хвилин пішки.", ph: "Ni, p'yat' khvylyn pishky.", en: "No, five minutes on foot." },
+      { speaker: "You", side: "right", ua: "Дуже дякую!", ph: "Duzhe dyakuyu!", en: "Thank you very much!" },
+    ]
+  },
+  {
+    icon: "🛒", title: "At the market", sub: "Buying food",
+    lines: [
+      { speaker: "Vendor", side: "left", ua: "Ласкаво просимо! Що вам потрібно?", ph: "Laskavo prosymo! Shcho vam potribno?", en: "Welcome! What do you need?" },
+      { speaker: "You", side: "right", ua: "Скільки коштує хліб?", ph: "Skil'ky koshtuye khlib?", en: "How much does the bread cost?" },
+      { speaker: "Vendor", side: "left", ua: "Двадцять гривень.", ph: "Dvadtsyat' hryven'.", en: "Twenty hryvnias." },
+      { speaker: "You", side: "right", ua: "Добре, дайте два, будь ласка.", ph: "Dobre, dayte dva, bud' laska.", en: "OK, give me two, please." },
+      { speaker: "Vendor", side: "left", ua: "Ось вам. Смачного!", ph: "Os' vam. Smachnoho!", en: "Here you go. Enjoy!" },
+    ]
+  },
+  {
+    icon: "🏥", title: "At the pharmacy", sub: "Asking for medicine",
+    lines: [
+      { speaker: "You", side: "right", ua: "Добрий день. Маєте ліки від болю голови?", ph: "Dobryi den'. Mayete liky vid bolyu holovy?", en: "Good afternoon. Do you have medicine for headache?" },
+      { speaker: "Pharmacist", side: "left", ua: "Так, звичайно. Аспірин підійде?", ph: "Tak, zvychayno. Aspirin pidyde?", en: "Yes, of course. Will aspirin do?" },
+      { speaker: "You", side: "right", ua: "Так, будь ласка. Скільки коштує?", ph: "Tak, bud' laska. Skil'ky koshtuye?", en: "Yes please. How much?" },
+      { speaker: "Pharmacist", side: "left", ua: "Сорок гривень.", ph: "Sorok hryven'.", en: "Forty hryvnias." },
+      { speaker: "You", side: "right", ua: "Дякую. До побачення.", ph: "Dyakuyu. Do pobachennya.", en: "Thank you. Goodbye." },
+    ]
+  },
+];
+
+// ===================== SPEECH =====================
+let speechSupported = false;
+let uaVoice = null;
+
+function initSpeech() {
+  if (!('speechSynthesis' in window)) {
+    document.getElementById('speechNotice').textContent = '⚠️ Audio not supported in this browser.';
+    return;
+  }
+  speechSupported = true;
+  function findVoice() {
+    const voices = speechSynthesis.getVoices();
+    uaVoice = voices.find(v => v.lang.startsWith('uk'))
+           || voices.find(v => v.lang.startsWith('ru'))
+           || null;
+    if (voices.length > 0 && !uaVoice) {
+      document.getElementById('speechNotice').textContent = '⚠️ No Ukrainian voice found — using default. Install a Ukrainian TTS voice for better results.';
+    }
+  }
+  findVoice();
+  speechSynthesis.onvoiceschanged = findVoice;
+}
+
+function speak(text, btn) {
+  if (!speechSupported) { alert('Speech not supported in your browser.'); return; }
+  speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang = 'uk-UA';
+  if (uaVoice) utt.voice = uaVoice;
+  utt.rate = 0.82;
+  if (btn) {
+    const orig = btn.textContent;
+    btn.textContent = '⏸';
+    utt.onend = () => btn.textContent = orig;
+    utt.onerror = () => btn.textContent = orig;
+  }
+  speechSynthesis.speak(utt);
+}
+
+function speakCurrent() {
+  speak(document.getElementById('cardUkrainian').textContent, document.getElementById('speakBtn'));
+}
+
+// ===================== FLASHCARDS =====================
+let currentCategory = 'greetings';
+let currentIndex = 0;
+let seen = new Set();
+
+function switchTab(id, el) {
+  document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  el.classList.add('active');
+}
+
+function selectCategory(cat, el) {
+  document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  currentCategory = cat;
+  currentIndex = 0;
+  document.getElementById('mainCard').classList.remove('flipped');
+  updateCard();
+}
+
+function updateCard() {
+  const data = cards[currentCategory];
+  const card = data[currentIndex];
+  document.getElementById('cardUkrainian').textContent = card.ua;
+  document.getElementById('cardTranslation').textContent = card.en;
+  document.getElementById('cardPhonetic').textContent = card.ph;
+  document.getElementById('cardContext').textContent = card.ctx;
+  document.getElementById('cardCounter').textContent = `${currentIndex + 1} / ${data.length}`;
+  document.getElementById('mainCard').classList.remove('flipped');
+  document.getElementById('speakBtn').textContent = '🔊';
+  seen.add(currentCategory + '-' + currentIndex);
+  updateProgress();
+}
+
+function flipCard() { document.getElementById('mainCard').classList.toggle('flipped'); }
+function nextCard() { const d = cards[currentCategory]; currentIndex = (currentIndex + 1) % d.length; updateCard(); }
+function prevCard() { const d = cards[currentCategory]; currentIndex = (currentIndex - 1 + d.length) % d.length; updateCard(); }
+
+function updateProgress() {
+  const total = Object.values(cards).reduce((s, a) => s + a.length, 0);
+  document.getElementById('progressFill').style.width = Math.round((seen.size / total) * 100) + '%';
+}
+
+// ===================== DIALOGUES =====================
+function renderDialogues() {
+  document.getElementById('dialogueList').innerHTML = dialogues.map((d, i) => `
+    <div class="dialogue-card">
+      <div class="dialogue-header" onclick="toggleDialogue(${i})">
+        <div class="dialogue-icon">${d.icon}</div>
+        <div><div class="dialogue-title">${d.title}</div><div class="dialogue-sub">${d.sub}</div></div>
+        <div class="dialogue-badge">${d.lines.length} lines</div>
+      </div>
+      <div class="dialogue-body" id="dialogue-${i}">
+        ${d.lines.map(l => `
+          <div class="chat-bubble ${l.side}">
+            <div class="bubble-speaker">${l.speaker}</div>
+            <div class="bubble-row">
+              <div class="bubble">
+                <div class="bubble-ua">${l.ua}</div>
+                <div class="bubble-phonetic">${l.ph}</div>
+                <div class="bubble-en">${l.en}</div>
+              </div>
+              <button class="speak-btn-sm" onclick="speak(${JSON.stringify(l.ua)}, this)" title="Hear this line">🔊</button>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function toggleDialogue(i) { document.getElementById('dialogue-' + i).classList.toggle('open'); }
+
+// ===================== AI TUTOR =====================
+const chatHistory = [];
+let isLoading = false;
+
+const SYSTEM = `You are Oksana, a warm and encouraging Ukrainian language tutor. Your student is a complete beginner learning Ukrainian.
+
+Rules:
+- Reply in English but always include Ukrainian phrases/words when relevant
+- Write Ukrainian text clearly, followed immediately by phonetic pronunciation in parentheses: e.g. Привіт (Pryvit)
+- Keep responses concise and beginner-friendly
+- Be encouraging and patient; if they try Ukrainian, praise them warmly and gently correct errors
+- Teach maximum 4-5 new words/phrases at a time
+- End each response with a small practice suggestion or question to keep the conversation going`;
+
+async function sendMessage() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if (!msg || isLoading) return;
+  input.value = '';
+  document.getElementById('suggestions').style.display = 'none';
+  appendMsg('user', msg);
+  chatHistory.push({ role: 'user', content: msg });
+  setLoading(true);
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: SYSTEM,
+        messages: chatHistory
+      })
+    });
+    const data = await res.json();
+    const reply = data.content?.[0]?.text || 'Sorry, something went wrong. Please try again.';
+    chatHistory.push({ role: 'assistant', content: reply });
+    removeTyping();
+    appendMsg('tutor', reply);
+  } catch(e) {
+    removeTyping();
+    appendMsg('tutor', 'Connection error. Please try again.');
+  }
+  setLoading(false);
+}
+
+function sendSuggestion(el) {
+  document.getElementById('chatInput').value = el.textContent;
+  sendMessage();
+}
+
+function appendMsg(role, text) {
+  const box = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+  div.innerHTML = `
+    <div class="msg-avatar">${role === 'tutor' ? '👩‍🏫' : '🙋'}</div>
+    <div class="msg-bubble">${fmtMsg(text)}</div>`;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+
+function fmtMsg(text) {
+  return text
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\n/g,'<br>')
+    // Highlight Ukrainian Cyrillic runs
+    .replace(/([\u0400-\u04FF\u0027\u2019]+(?:\s[\u0400-\u04FF\u0027\u2019]+)*)/g, '<span class="ua-phrase">$1</span>');
+}
+
+function setLoading(on) {
+  isLoading = on;
+  document.getElementById('sendBtn').disabled = on;
+  if (on) {
+    const box = document.getElementById('chatMessages');
+    const t = document.createElement('div');
+    t.className = 'msg tutor'; t.id = 'typingMsg';
+    t.innerHTML = `<div class="msg-avatar">👩‍🏫</div><div class="msg-bubble"><div class="typing-indicator"><span></span><span></span><span></span></div></div>`;
+    box.appendChild(t);
+    box.scrollTop = box.scrollHeight;
+  }
+}
+
+function removeTyping() {
+  const t = document.getElementById('typingMsg');
+  if (t) t.remove();
+}
+
+function initChat() {
+  appendMsg('tutor', `Привіт (Pryvit)! 👋 I'm Oksana, your Ukrainian tutor!
+
+I'm here to help you learn Ukrainian from scratch — from your very first words to full sentences. Feel free to ask me anything: vocabulary, pronunciation, grammar, or just try speaking Ukrainian with me.
+
+What would you like to learn today?`);
+}
+
+// ===================== INIT =====================
+initSpeech();
+updateCard();
+renderDialogues();
+initChat();
+</script>
+</body>
+</html>
